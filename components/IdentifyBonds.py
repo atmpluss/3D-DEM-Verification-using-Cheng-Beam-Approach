@@ -17,7 +17,7 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
             dn = cij - grain_array[i].r - grain_array[j].r
             print("id1: " + str(i), " id2: " + str(j) + " dn: " + str(dn))
 
-            if (dn < 0):
+            if (dn <= 0.01):
 
                 m_eff = grain_array[i].mass() * grain_array[j].mass() / (grain_array[i].mass() + grain_array[j].mass())
 
@@ -41,11 +41,13 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
                 # kr = 2.e-4 * kn
                 # ko = 2.e-4 * kn
 
-
+                print(f"hardcoging lb: {0.4} and rb: {Rb}")
+                Lb = 0.4
+                kappa = 2.*(1. + poisson)
                 kn = Eb * Ab/Lb
-                ks = 12. * Eb * Ib / (Lb ** 3)
-                kr = 0.25 * kn * Rb**2
-                ko = 0.
+                ks = kn/kappa
+                kr = 0.5 * ks * Rb**2
+                ko = 0.25 * ks * Rb**2
 
 
 

@@ -26,6 +26,24 @@ def bonded_grains_interaction(i,j, dt, grain_list, bond_dic):
     relVelijN = nij * np.dot(nij, relVelij)
     relVelijT = relVelij - relVelijN
 
+    Lb = cij
+    gc = Lb - grain_list[i].r - grain_list[j].r
+    xc = nij * gc/2
+    rxc = xc - grain_list[i].pos
+    rbc = xc - grain_list[j].pos
+    vcx = grain_list[i].v + np.cross(grain_list[i].an_v, rxc)
+    vcb = grain_list[j].v + np.cross(grain_list[j].an_v, rbc)
+    vcr = vcx - vcb
+    wcr = grain_list[i].an_v - grain_list[j].an_v
+
+    dfcx = bond_dic[(id1, id2)].kn * vcr[0] * dt
+    dfcy = bond_dic[(id1, id2)].ks * vcr[1] * dt
+    dfcz = bond_dic[(id1, id2)].kn * vcr[2] * dt
+
+    dmcx = bond_dic[(id1, id2)].ko * wcr[0] * dt
+    dmcy = bond_dic[(id1, id2)].kr * wcr[1] * dt
+    dmcz = bond_dic[(id1, id2)].kr * wcr[2] * dt
+
     fnabs = 0
     fn = np.array([0.,0.,0.])
     if (dn >= 0):

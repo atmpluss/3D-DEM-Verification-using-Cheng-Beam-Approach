@@ -27,7 +27,7 @@ R = 0.2
 rhoS = 2600.
 dt = 1e-5
 endForce = np.array([0.,0.,0.])
-timesteps = 10000
+timesteps = 20000
 vtkInterval=500
 
 
@@ -36,7 +36,7 @@ def particlesGenerator():
     positions = []
     positions.append(np.array([0., 0., 0.]))
     for i in range(1, 11):
-        positions.append(np.array([2 * R * i - 0.0001 * i, 0., 0.]))
+        positions.append(np.array([2 * R * i - 0 * i, 0., 0.]))
 
     for i in range(len(positions)):
         prt = Particles(int(i), R, positions[i], rhoS)
@@ -80,6 +80,7 @@ def main():
 
     particlesGenerator()
     identify_cohesive_bonds(grain_list, E, R, rhoS, en,bond_dic)
+    test = bond_dic
     fIncrement = [0.,Force/(timesteps/2.),0.]
 
     for tstep in range(timesteps):
