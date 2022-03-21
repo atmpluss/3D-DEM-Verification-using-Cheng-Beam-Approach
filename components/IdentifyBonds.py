@@ -31,7 +31,6 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
                 Rb = R
                 Ab = math.pi * Rb**2
                 Lb =  cij
-                Massb = math.pi * Rb**2 * Lb * rhoS
                 Ib = 0.25 * math.pi * Rb**4
                 phi = 20. * (Rb**2) * (1. + poisson)/(3. * Lb**2)
 
@@ -47,9 +46,17 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
                 kappa = 2.*(1. + poisson)
                 kn = Eb * Ab/Lb
                 # ks = kn/kappa
-                ks = 12 * Eb * Ib /Lb**3
-                kr = 0.5 * ks * Rb**2 * 100
-                ko = 0.25 * ks * Rb**2 * 100
+                ks = 12 * Eb * Ib /(Lb**3)
+                #good result:
+                # kr = 0.5 * ks * Rb**2 * 100
+                # ko = 0.25 * ks * Rb**2 * 100
+
+                #good result
+                # kr =  ks
+                # ko = 0
+
+                kr = kn
+                ko = kn
 
 
 
