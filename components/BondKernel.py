@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import math
 
@@ -10,58 +12,33 @@ def bonded_grains_interaction(i,j, dt, grain_list, bond_dic):
     cij = np.sqrt(np.dot(posij, posij))
     dn_current = cij - grain_list[i].r - grain_list[j].r
     dn = dn_current - bond_dic[(id1,id2)].dn_init
-    nij = posij
+    nij = copy.deepcopy(posij)
+    nij = nij / np.linalg.norm(nij) if (np.linalg.norm(nij) != 0) else np.array([0.,0.,0.])
 
-    if(np.linalg.norm(nij) != 0):
-        nij /= np.linalg.norm(nij)
 
-    contactPoint = cij/2. * nij + grain_list[j].pos
-    rci = contactPoint - grain_list[i].pos
-    rcj = contactPoint - grain_list[j].pos
+    relVelij = grain_list[i].v - grain_list[j].v
+    vijn = nij * np.dot(nij, relVelij)
 
-    Ui = grain_list[i].v  + np.cross(rci, grain_list[i].an_v)
-    Uj = grain_list[j].v  + np.cross(rcj, grain_list[j].an_v)
 
-    relVelij = Ui - Uj
-    relVelijN = nij * np.dot(nij, relVelij)
-    relVelijT = relVelij - relVelijN
+    #normal force:
+    fnNorm = 0
+    fnNorm = -1 * bond_dic[(id1, id2)].kn * dn 
+    fn = nij * fnNorm - bond_dic[(id1, id2)].nun * vijn
+    
+    vij = relVelij + (grain_list[i].r - 0.5 * abs(dn)) * np.cross(nij, grain_list[i].an_v) + (grain_list[j].r - 0.5 * abs(dn)) * np.cross(nij, grain_list[j].an_v)
+    vijt = vij - vijn
 
-    Lb = cij
-    gc = Lb - grain_list[i].r - grain_list[j].r
-    xc = nij * gc/2
-    rxc = xc - grain_list[i].pos
-    rbc = xc - grain_list[j].pos
-    vcx = grain_list[i].v + np.cross(grain_list[i].an_v, rxc)
-    vcb = grain_list[j].v + np.cross(grain_list[j].an_v, rbc)
-    vcr = vcx - vcb
-    wcr = grain_list[i].an_v - grain_list[j].an_v
-
-    dfcx = bond_dic[(id1, id2)].kn * vcr[0] * dt
-    dfcy = bond_dic[(id1, id2)].ks * vcr[1] * dt
-    dfcz = bond_dic[(id1, id2)].kn * vcr[2] * dt
-
-    dmcx = bond_dic[(id1, id2)].ko * wcr[0] * dt
-    dmcy = bond_dic[(id1, id2)].kr * wcr[1] * dt
-    dmcz = bond_dic[(id1, id2)].kr * wcr[2] * dt
-
-    fnabs = 0
-    fn = np.array([0.,0.,0.])
-    if (dn >= 0):
-        #traction
-        fnabs = -1 * bond_dic[(id1, id2)].kn * dn
-        fn = nij * fnabs - bond_dic[(id1, id2)].nun * relVelijN
-    else:
-        #compression
-        fnabs = -1 * bond_dic[(id1, id2)].kn * dn
-        if(fnabs < 0.):
-            fnabs = 0.
-        fn = nij * fnabs - bond_dic[(id1, id2)].nun * relVelijN
 
     Us_pre = bond_dic[(id1, id2)].us
     Us_pre = Us_pre - nij*(np.dot(nij,Us_pre))
-    Us = Us_pre + dt * relVelijT
-    fTLS = -1 * bond_dic[(id1, id2)].ks * Us -1 * bond_dic[(id1, id2)].nus*relVelijT
+    Us = Us_pre + dt * vijt
+    fs = -1 * bond_dic[(id1, id2)].ks * Us -1 * bond_dic[(id1, id2)].nus*vijt
     bond_dic[(id1, id2)].us = Us
+
+
+
+
+
 
     a_prime_ij = ((grain_list[i].r - 0.5 * abs(dn)) * (grain_list[j].r - 0.5 * abs(dn))) /((grain_list[i].r - 0.5 * abs(dn))  + (grain_list[j].r - 0.5 * abs(dn)) )
     a_ij = (grain_list[i].r * grain_list[j].r)/ (grain_list[i].r + grain_list[j].r)
@@ -88,31 +65,32 @@ def bonded_grains_interaction(i,j, dt, grain_list, bond_dic):
     bond_dic[(id1, id2)].ur = Ur
 
 
-    # rupture = (np.linalg.norm(fTLS)/bond_dic[(id1, id2)].y_s)**2 + (fnabs/bond_dic[(id1, id2)].y_n) + (np.linalg.norm(torque)/bond_dic[(id1, id2)].y_r)**2 + (np.linalg.norm(torsion)/bond_dic[(id1, id2)].y_o)**2 - 1.
+    # rupture = (np.linalg.norm(fTLS)/bond_dic[(id1, id2)].y_s)**2 + (fnNorm/bond_dic[(id1, id2)].y_n) + (np.linalg.norm(torque)/bond_dic[(id1, id2)].y_r)**2 + (np.linalg.norm(torsion)/bond_dic[(id1, id2)].y_o)**2 - 1.
     rupture = -1
     if(rupture >= 0 ):
         fn = np.array([0.,0.,0.])
-        fTLS = np.array([0.,0.,0.])
+        fs = np.array([0.,0.,0.])
         del(bond_dic[(id1,id2)])
         print("the bond is broken!")
         return
 
     bond_dic[(id1, id2)].fn = fn
-    bond_dic[(id1, id2)].fs = fTLS
+    bond_dic[(id1, id2)].fs = fs
 
-    grain_list[i].a += fn + fTLS
-    grain_list[j].a += (fn + fTLS) * -1.
+    grain_list[i].F = grain_list[i].F + fn + fs
+    grain_list[j].F = grain_list[j].F + (fn + fs) * -1.
 
-    crossthi = np.cross(rci, fTLS)
-    FFi = -1 * crossthi
-    FFi += torque + torsion
+    crossthi = np.cross(nij, fs)
+    FFF = -1 * (grain_list[i].r -0.5 * abs(dn)) * crossthi
 
-    crossthj = np.cross(rcj, -1*fTLS)
-    FFj = -1 * crossthj
-    FFj += -1 * (torque + torsion)
 
-    grain_list[i].an_a += FFi
-    grain_list[j].an_a += FFj
+
+
+    grain_list[i].M = grain_list[i].M  + FFF + torque + torsion
+    grain_list[j].M = grain_list[j].M + (grain_list[j].r - 0.5 * abs(dn))/(grain_list[i].r - 0.5 * abs(dn)) * FFF - torque - torsion
+
+
+
 
 
 

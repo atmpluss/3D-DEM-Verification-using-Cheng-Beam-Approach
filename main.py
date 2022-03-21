@@ -16,8 +16,8 @@ from components.Plot import plotDelta
 
 bond_dic={}
 grain_list = []
-E = 1e9
-ForceGlobal = 10
+E = 2e11
+ForceGlobal = 100000
 en = 0.2
 ks_to_kn = 1.
 nus_to_nun = 0.2
@@ -60,13 +60,25 @@ def postForceGrains():
     for index in range(len(grain_list)):
         postforce_grains(gravity, index, dt, grain_list, endForce)
 
+def fixParticle(i=0):
+    grain_list[i].v = np.array([0., 0., 0.])
+    grain_list[i].an_v = np.array([0., 0., 0.])
+    grain_list[i].pos = np.array([0., 0., 0.])
+    grain_list[i].phi = np.array([0., 0., 0.])
+
 def vtkWriter(tstep):
     if (tstep % vtkInterval == 0):
         write_vtk_file(grain_list, tstep, r"VTKs\particles")
-def forceIncrement(tstep, fIncrement):
+def forceIncrement(tstep, fIncrement, i=10):
     global endForce
     if (tstep <= timesteps // 2):
-        endForce += fIncrement
+        endForce = endForce + fIncrement
+    grain_list[i].F = grain_list[i].F +  endForce
+
+
+def showForce(i, step, interval):
+    if(step%interval == 0):
+        print(f"particle {i} force is: {grain_list[i].F}")
 
 def plotData(tstep):
     if (tstep % 4000 == 0):
@@ -85,13 +97,17 @@ def main():
 
     for tstep in range(timesteps):
 
-        terminalInfo(tstep, vtkInterval)
+        # terminalInfo(tstep, vtkInterval)
+        showForce(10, tstep, 100)
         preForceGrains()
+        fixParticle(0)
+        forceIncrement(tstep, fIncrement, 10)
         particlesInteraction()
         postForceGrains()
         vtkWriter(tstep)
-        forceIncrement(tstep, fIncrement)
-        plotData(tstep)
+        if(tstep%1000 == 0):
+         delta_y, delta_b,L0 = delta_calculation(endForce, grain_list, bond_dic)
+         plotDelta(delta_y, L0, tstep,grain_list)
 
 
 

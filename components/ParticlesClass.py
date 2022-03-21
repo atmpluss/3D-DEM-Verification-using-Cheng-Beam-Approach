@@ -13,6 +13,8 @@ class Particles():
         self.an_v = np.array([0,0,0])
         self.a = np.array([0,0,0])
         self.an_a = np.array([0,0,0])
+        self.F = np.array([0.,0.,0.])
+        self.M = np.array([0.,0.,0.])
     def mass(self):  # particle mass
         return 4. / 3. * math.pi * self.rho * self.r ** 3
 

@@ -3,14 +3,13 @@ import math
 
 def postforce_grains(gravity,i, dt, grain_list,endForce):
     # global endForce
-    #apply gravity
-    grain_list[i].a = grain_list[i].a + gravity * grain_list[i].mass()
+
+    #no gravity in this test case
 
     #compute acceleration a=f/m
-    grain_list[i].a = grain_list[i].a/grain_list[i].mass()
-    grain_list[i].an_a = grain_list[i].an_a/ grain_list[i].inertia()
-    if(grain_list[i].id == 10):
-        grain_list[i].a += endForce
+    grain_list[i].a = grain_list[i].F/grain_list[i].mass()
+    grain_list[i].an_a = grain_list[i].M/ grain_list[i].inertia()
+
 
 
     #velocity v(t + dt)

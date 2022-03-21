@@ -15,7 +15,7 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
             posij = grain_array[i].pos - grain_array[j].pos
             cij = np.sqrt(np.dot(posij,posij))
             dn = cij - grain_array[i].r - grain_array[j].r
-            print("id1: " + str(i), " id2: " + str(j) + " dn: " + str(dn))
+
 
             if (dn <= 0.01):
 
@@ -42,12 +42,14 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
                 # ko = 2.e-4 * kn
 
                 print(f"hardcoging lb: {0.4} and rb: {Rb}")
+                print("id1: " + str(i), " id2: " + str(j) + " dn: " + str(dn))
                 Lb = 0.4
                 kappa = 2.*(1. + poisson)
                 kn = Eb * Ab/Lb
-                ks = kn/kappa
-                kr = 0.5 * ks * Rb**2
-                ko = 0.25 * ks * Rb**2
+                # ks = kn/kappa
+                ks = 12 * Eb * Ib /Lb**3
+                kr = 0.5 * ks * Rb**2 * 100
+                ko = 0.25 * ks * Rb**2 * 100
 
 
 
@@ -60,7 +62,7 @@ def identify_cohesive_bonds(grain_array, E, R, rhoS, en, bond_dic):
                 nur = nun * 0.5
                 nuo = nun * 0.5
 
-                b0 = Bond(grain_array[i].id,grain_array[j].id,dn,0,kn,ks,kr,ko,nun,nus,nur,nuo,Rb,Ab,Ib,Eb,Gb,phi)
+                b0 = Bond(gi=grain_array[i],gj=grain_array[j],initial_dn=dn,dn=0,kn=kn,ks=ks,kr=kr,ko=ko,nu=nun,nus=nus,nur=nur,nuo=nuo, Rb=Rb, Ab=Ab, Ib=Ib,Eb=Eb,Gb=Gb,phi=phi)
                 bond_dic[(grain_array[i].id,grain_array[j].id)] = b0
 
 
