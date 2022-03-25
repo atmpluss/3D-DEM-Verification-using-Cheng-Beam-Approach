@@ -68,7 +68,7 @@ def fixParticle(i=0):
 
 def vtkWriter(tstep):
     if (tstep % vtkInterval == 0):
-        write_vtk_file(grain_list, tstep, r"VTKs\particles")
+        write_vtk_file(grain_list, tstep, r"VTKs\particles",100)
 def forceIncrement(tstep, fIncrement, i=10):
     global endForce
     if (tstep <= timesteps // 2):
@@ -81,6 +81,7 @@ def showForce(i, step, interval):
         print(f"particle {i} force is: {grain_list[i].F}")
 
 def plotData(tstep):
+
     if (tstep % 4000 == 0):
         [delta_ys, delta_bs, L0] = delta_calculation(endForce, grain_list, bond_dic)
         plotDelta(delta_ys, delta_bs, L0, tstep, grain_list, bond_dic)

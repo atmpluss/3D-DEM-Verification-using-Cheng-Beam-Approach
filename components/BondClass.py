@@ -17,7 +17,7 @@ class Bond:
         self.torque = np.array([0,0,0])
         self.torsion = np.array([0,0,0])
         self.rupture = -1
-        # stofnesses
+        # stiffness
         self.kn = kn
         self.ks = ks
         self.kr = kr
