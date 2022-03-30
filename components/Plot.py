@@ -14,7 +14,7 @@ def plotDelta(delta_ys, L0, step,grain_list):
     plt.xlabel('x/L0')
     plt.ylabel('displacement (mm)')
     plt.title("for timestep: " + str(step))
-    plt.plot(xs, delta_ys*1000, 'o',alpha=1, label='TB theory', color="blue")
+    plt.plot(xs, delta_ys*1000, '-',alpha=1, label='TB theory', color="blue")
     plt.plot(xs, ys*1000, 's',alpha=0.7,label ='Simulation',color="red")
     plt.legend(loc='best')
     plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
